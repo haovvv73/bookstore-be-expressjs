@@ -6,8 +6,4 @@ export default class Book{
         this.price = price,
         this.id = id
     }
-
-    hello(){
-        console.log('hello');
-    }
 }

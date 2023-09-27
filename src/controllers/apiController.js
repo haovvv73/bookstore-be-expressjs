@@ -73,6 +73,14 @@ const deleteBook = async (req, res) => {
 const updateBook = async (req, res) => {
 
     const { title, author, category, price, id } = req.body
+
+    if(!title || !author || !category || !price || !id){
+        return res.status(400).json({
+            status : false,
+            message : "MISSING DATA",
+        })
+    }
+
     const result = await dbconnection.updateBook(new Book(title, author, category, price, id))
 
     if(result == null){
@@ -98,6 +106,14 @@ const updateBook = async (req, res) => {
 const createBook = async (req, res) => {
 
     const { title, author, category, price } = req.body
+    
+    if(!title || !author || !category || !price ){
+        return res.status(400).json({
+            status : false,
+            message : "MISSING DATA",
+        })
+    }
+
     const result = await dbconnection.createBook(new Book(title, author, category, price))
 
     if(result == null){
