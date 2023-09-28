@@ -1,8 +1,13 @@
 import express from 'express';
 import initApiRoute from './routes/api.js';
+import initUserRoute from './routes/user.js';
+import initAuthRoute from './routes/auth.js';
+import cors from 'cors'
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express()
-const port = 4040
+const port = process.env.PORT | 4040
 
 // parse application/json
 app.use(express.json());
@@ -10,21 +15,24 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // config CORS
-app.use(function(req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  //res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
-});
+app.use(
+  cors({
+    origin: '*',
+  })
+);
 
 // router
+// auth
+initAuthRoute(app)
+// user
+initUserRoute(app)
+// book api 
 initApiRoute(app)
 
 // 404 not foud
 app.use((req, res) => {
   return res.status(404).json({
-    status : false,
+    status: false,
     message: 'INVALID URL'
   })
 })
