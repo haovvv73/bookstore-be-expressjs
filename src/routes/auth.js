@@ -1,5 +1,5 @@
 import express from 'express';
-import { login, register } from '../controllers/authController.js';
+import { checkToken, login, register } from '../controllers/authController.js';
 const router = express.Router()
 
 const initAuthRoute = (app)=>{
@@ -9,6 +9,9 @@ const initAuthRoute = (app)=>{
 
     // register
     router.post('/register',register)
+
+    // check token
+    router.post('/check-token',checkToken)
 
     return app.use('/api/auth/',router)
 }

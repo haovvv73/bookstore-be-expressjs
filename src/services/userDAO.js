@@ -40,7 +40,7 @@ class UserDao {
             return result[0].affectedRows
         } catch (error) {
             // get value error
-            console.log(error.sqlMessage);
+            console.log(error);
             const errorMessage = error.sqlMessage;
             const startIndex = errorMessage.indexOf("'") + 1;
             const endIndex = errorMessage.indexOf("'", startIndex);
@@ -53,7 +53,7 @@ class UserDao {
             const values = [value1, value2];
             
             if( ['email','phone'].some( key => key == values[1] ) ){
-                return values[1]  + " IS EXIST"
+                return values[1]  + " is exist"
             }
 
             return null

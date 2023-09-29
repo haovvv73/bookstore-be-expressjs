@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import { decodeToken } from '../util/tokenTool.js';
 
 const authenticate = (req, res, next) => {
     const authToken = req.headers.authorization;
@@ -14,7 +15,7 @@ const authenticate = (req, res, next) => {
 
     try {
         // DECODE
-        const decodedToken = jwt.verify(accessToken, process.env.SECRET_KEY);
+        const decodedToken = decodeToken(accessToken);
         const { userName, userEmail, status } = decodedToken
 
         if (userName && userEmail && status) {

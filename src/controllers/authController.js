@@ -1,7 +1,7 @@
 import userDAO from "../services/userDAO.js";
 import jwt from 'jsonwebtoken';
 import { User } from "../models/user.js";
-import { createToken } from "../util/tokenTool.js";
+import { createToken, isTokenExpired } from "../util/tokenTool.js";
 
 const login = async (req, res) => {
 
@@ -26,7 +26,7 @@ const login = async (req, res) => {
 
     if (result.length <= 0) {
         return res.status(401).json({
-            message: "USER DOES NOT EXIST",
+            message: "user does not exist",
             status: false,
         })
     }
@@ -37,7 +37,7 @@ const login = async (req, res) => {
     const isMatch = (password === user.password) ? true : false
     if (!isMatch) {
         return res.status(401).json({
-            message: 'WRONG PASSWORD', status: false
+            message: 'wrong password', status: false
         });
     }
 
@@ -95,4 +95,11 @@ const register = async (req, res) => {
     })
 }
 
-export { login, register }
+const checkToken = (req,res)=>{
+    console.log(">>>>>>>>>>>>>>>> check token");
+    const {authToken} = req.headers;
+    if (!authToken) return false
+    return isTokenExpired(authToken)
+}
+
+export { login, register,checkToken }
