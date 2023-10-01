@@ -1,9 +1,9 @@
 import express from 'express';
-import initApiRoute from './routes/api.js';
-import initUserRoute from './routes/user.js';
-import initAuthRoute from './routes/auth.js';
 import cors from 'cors'
 import dotenv from 'dotenv';
+import initApiRoute from './routes/apiRoute.js';
+import errorHandle from './middleware/errorHandle.js';
+import errorResponse from './helpers/errorResponse.js';
 dotenv.config();
 
 const app = express()
@@ -21,20 +21,15 @@ app.use(
   })
 );
 
-// router
-// auth
-initAuthRoute(app)
-// user
-initUserRoute(app)
-// book api 
+// route
 initApiRoute(app)
+
+// middleware
+app.use(errorHandle)
 
 // 404 not foud
 app.use((req, res) => {
-  return res.status(404).json({
-    status: false,
-    message: 'INVALID URL'
-  })
+  return errorResponse(res,'INVALID URL',404)
 })
 
 app.listen(port, () => {

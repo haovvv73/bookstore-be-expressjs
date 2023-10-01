@@ -2,104 +2,85 @@ import userDAO from "../services/userDAO.js";
 import jwt from 'jsonwebtoken';
 import { User } from "../models/user.js";
 import { createToken, isTokenExpired } from "../util/tokenTool.js";
+import errorResponse from "../helpers/errorResponse.js";
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
 
     const { email, password } = req.body;
+    // validate
+    if (!email || !password) return errorResponse(res, 'missing data', 400)
 
-    if (!email || !password) {
-        return res.status(400).json({
-            status: false,
-            message: "MISSING DATA",
-        })
-    }
+    try {
+        // check user 
+        const result = await userDAO.getUserInfo(email)
+        if (result.length <= 0) return errorResponse(res, 'user does not exist', 401)
 
-    // check user 
-    const result = await userDAO.getUserInfo(email)
+        // check password
+        const user = result[0];
+        const isMatch = (password === user.password) ? true : false
+        if (!isMatch) return errorResponse(res, 'wrong password', 401)
 
-    if (result == null) {
-        return res.status(500).json({
-            message: 'Internal Server Error',
-            status: false
-        })
-    }
+        // pass => return token
+        const token = createToken(user)
 
-    if (result.length <= 0) {
-        return res.status(401).json({
-            message: "user does not exist",
-            status: false,
-        })
-    }
-
-    // check password = Bcrypt
-    const user = result[0];
-
-    const isMatch = (password === user.password) ? true : false
-    if (!isMatch) {
-        return res.status(401).json({
-            message: 'wrong password', status: false
+        return res.status(200).json({
+            message: "LOGIN SUCCESS",
+            status: true,
+            token
         });
+
+    } catch (error) {
+        next(error)
     }
-
-    // pass => return token
-    const token = createToken(user)
-
-    return res.status(200).json({
-        message: "LOGIN SUCCESS",
-        status: true,
-        token
-    });
 }
 
 const register = async (req, res) => {
 
-    const {email, name, phone, password } = req.body;
+    const { email, name, phone, password } = req.body;
+    // validate
+    if (!email || !password || !name || !phone) return errorResponse(res, 'missing data', 400)
 
-    if (!email || !password || !name || !phone) {
-        return res.status(400).json({
-            status: false,
-            message: "MISSING DATA",
+    try {
+        const user = new User(null, email, name, password, phone)
+        const result = await userDAO.saveUser(user)
+        // invalid data
+        if (result === 0) return errorResponse(res, 'can not save user', 401)
+
+        // pass => return token
+        const token = createToken(user);
+        return res.status(201).json({
+            message: "OK SAVE USER",
+            status: true,
+            token
         })
+
+    } catch (error) {
+        // get value error
+        console.log(error);
+        const errorMessage = error.sqlMessage;
+        const startIndex = errorMessage.indexOf("'") + 1;
+        const endIndex = errorMessage.indexOf("'", startIndex);
+        const value1 = errorMessage.substring(startIndex, endIndex);
+
+        const secondStartIndex = errorMessage.indexOf("'", endIndex + 1) + 1;
+        const secondEndIndex = errorMessage.indexOf("'", secondStartIndex);
+        const value2 = errorMessage.substring(secondStartIndex, secondEndIndex);
+
+        const values = [value1, value2];
+
+        // email is exist | phone is exist
+        if (['email', 'phone'].some(key => key == values[1])) return errorResponse(res,values[1] + " is exist",409)
+        
+        next(error)
     }
 
-    const user = new User(null,email, name, password, phone)
-    const result = await userDAO.saveUser(user)
-
-    if(result == null){
-        return res.status(500).json({
-            status : false,
-            message : "Internal Server Error",
-        })
-    }
-
-    if(result === 0){
-        return res.status(401).json({
-            message : "CAN NOT SAVE USER",
-            status : false,
-        })
-    }
-
-    if(typeof result === "string"){
-        return res.status(409).json({
-            message : result,
-            status : false,
-        })
-    }
-
-    // pass => return token
-    const token = createToken(user);
-    return res.status(201).json({
-        message : "OK SAVE USER",
-        status : true,
-        token
-    })
 }
 
-const checkToken = (req,res)=>{
+const checkToken = (req, res) => {
     console.log(">>>>>>>>>>>>>>>> check token");
-    const {authToken} = req.headers;
+    const { authToken } = req.headers;
     if (!authToken) return false
     return isTokenExpired(authToken)
 }
 
-export { login, register,checkToken }
+export { login, register, checkToken }

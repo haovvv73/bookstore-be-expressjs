@@ -27,7 +27,6 @@ const isTokenExpired = (token) => {
 
         return expirationTime >= currentTime;
     } catch (error) {
-
         return false;
     }
 }

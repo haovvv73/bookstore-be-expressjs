@@ -1,14 +1,13 @@
 import jwt from 'jsonwebtoken'
 import { decodeToken } from '../util/tokenTool.js';
+import errorResponse from '../helpers/errorResponse.js';
 
 const authenticate = (req, res, next) => {
+    console.log(">>>>>>>>> authenticate");
     const authToken = req.headers.authorization;
 
     if (!authToken || !authToken?.startsWith("Bearer ")) {
-        return res.status(401).json({
-            message: 'MISSING authentication token',
-            status: false
-        });
+        return errorResponse(res,'MISSING authentication token',401)
     }
 
     const accessToken = authToken.split(" ")[1]
@@ -30,11 +29,8 @@ const authenticate = (req, res, next) => {
         }
 
     } catch (error) {
-        console.log(error);
-        return res.status(403).json({
-            message: 'Invalid authentication token',
-            status: false
-        });
+        // console.log(error);
+        return errorResponse(res,'Invalid authentication token',403)
     }
 };
 

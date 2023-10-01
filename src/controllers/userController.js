@@ -1,36 +1,22 @@
+import errorResponse from "../helpers/errorResponse.js"
+import successResponse from "../helpers/successResponse.js"
 import userDAO from "../services/userDAO.js"
 
-const getUserInfo = async (req,res)=>{
+const getUserInfo = async (req,res,next)=>{
+    
     const { userEmail } = req.user
+    // validate 
+    if(!userEmail ) return errorResponse(res,'missing data',400)
 
-    if(!userEmail ){
-        return res.status(400).json({
-            status : false,
-            message : "MISSING DATA",
-        })
+    try {
+        const result = await userDAO.getUserInfo(userEmail)
+        // invalid information client
+        if(result.length <= 0) return errorResponse(res,'user does not exist',401)
+
+        return successResponse(res,'OK get user',result,200)
+    } catch (error) {
+        next(error)
     }
-
-    const result = await userDAO.getUserInfo(userEmail)
-
-    if(result == null){
-        return res.status(500).json({
-            status : false,
-            message : "Internal Server Error",
-        })
-    }
-
-    if(result.length <= 0){
-        return res.status(401).json({
-            message : "USER DOES NOT EXIST",
-            status : true,
-        })
-    }
-
-    return res.status(200).json({
-        message : "OK GET USER",
-        status : true,
-        data: result
-    })
 }
 
 export {getUserInfo}
