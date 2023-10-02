@@ -1,8 +1,8 @@
 import userDAO from "../services/userDAO.js";
-import jwt from 'jsonwebtoken';
 import { User } from "../models/user.js";
 import { createToken, isTokenExpired } from "../util/tokenTool.js";
 import errorResponse from "../helpers/errorResponse.js";
+import { getErrorSql } from "../util/errorSqlTool.js";
 
 const login = async (req, res, next) => {
 
@@ -58,19 +58,13 @@ const register = async (req, res) => {
         // get value error
         console.log(error);
         const errorMessage = error.sqlMessage;
-        const startIndex = errorMessage.indexOf("'") + 1;
-        const endIndex = errorMessage.indexOf("'", startIndex);
-        const value1 = errorMessage.substring(startIndex, endIndex);
-
-        const secondStartIndex = errorMessage.indexOf("'", endIndex + 1) + 1;
-        const secondEndIndex = errorMessage.indexOf("'", secondStartIndex);
-        const value2 = errorMessage.substring(secondStartIndex, secondEndIndex);
-
-        const values = [value1, value2];
+        // [ 0             , 1         ]
+        // [ error message, error field]
+        const values = getErrorSql(errorMessage)
 
         // email is exist | phone is exist
-        if (['email', 'phone'].some(key => key == values[1])) return errorResponse(res,values[1] + " is exist",409)
-        
+        if (['email', 'phone'].some(key => key == values[1])) return errorResponse(res, values[1] + " is exist", 409)
+
         next(error)
     }
 

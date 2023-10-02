@@ -2,6 +2,7 @@ import errorResponse from '../helpers/errorResponse.js';
 import successResponse from '../helpers/successResponse.js';
 import Book from '../models/book.js';
 import bookDAO from '../services/bookDAO.js';
+import { getErrorSql } from '../util/errorSqlTool.js';
 
 const getBooks = async (req, res, next) => {
 
@@ -61,7 +62,13 @@ const updateBook = async (req, res, next) => {
 
         return successResponse(res, 'OK update book', [], 200)
     } catch (error) {
-        next(error)
+        // console.log(error);
+        const errorMessage = error.sqlMessage;
+        // [ 0: error message, 1: error field]
+        const values = getErrorSql(errorMessage)
+
+        // book is exist
+        if (['title', 'category'].some(key => key == values[1])) return errorResponse(res, values[0] + " is exist", 409)
     }
 }
 
@@ -78,7 +85,13 @@ const createBook = async (req, res, next) => {
 
         return successResponse(res, 'OK create book', [], 201)
     } catch (error) {
-        next(error)
+        // console.log(error);
+        const errorMessage = error.sqlMessage;
+        // [ 0: error message, 1: error field]
+        const values = getErrorSql(errorMessage)
+
+        // book is exist
+        if (['title', 'category'].some(key => key == values[1])) return errorResponse(res, values[0] + " is exist", 409)
     }
 }
 
